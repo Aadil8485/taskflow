@@ -20,6 +20,9 @@ export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState("");
 
+  // 1. ADDED: State to track if the password should be shown
+  const [showPassword, setShowPassword] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -75,11 +78,28 @@ export default function LoginPage() {
             <label className="block text-sm font-medium text-gray-700">
               Password
             </label>
+            {/* 2. UPDATED: Change input type dynamically based on showPassword state */}
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               {...register("password")}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-black"
             />
+            {/* 3. ADDED: Checkbox to toggle the state */}
+            <div className="mt-2 flex items-center">
+              <input
+                type="checkbox"
+                id="showPassword"
+                checked={showPassword}
+                onChange={(e) => setShowPassword(e.target.checked)}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
+              />
+              <label
+                htmlFor="showPassword"
+                className="ml-2 block text-sm text-gray-700 cursor-pointer"
+              >
+                Show password
+              </label>
+            </div>
             {errors.password && (
               <p className="text-red-500 text-xs mt-1">
                 {errors.password.message}

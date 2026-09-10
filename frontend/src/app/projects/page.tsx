@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Link from "next/link";
-import { Plus, Folder, ArrowRight, Trash2 } from "lucide-react";
+import { Plus, Folder, ArrowRight, Trash2, Clock } from "lucide-react";
 
 const projectSchema = z.object({
   name: z.string().min(1, "Project name is required"),
@@ -150,45 +150,86 @@ export default function ProjectsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {projects?.map((project: any) => (
-            <div
-              key={project.id}
-              className="bg-white overflow-hidden shadow-sm rounded-3xl border hover:shadow-xl transition-shadow "
-            >
-              <div className="p-5">
-                <div className="flex justify-between items-start">
-                  <h3 className="text-lg font-semibold text-gray-900 truncate pr-2">
-                    {project.name}
-                  </h3>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-green-600">
-                    Active
-                  </span>
-                </div>
-                <p className="mt-2 text-sm text-gray-500 line-clamp-2">
-                  {project.description || "No description provided."}
-                </p>
+          {projects?.map((project: any) => {
+            // 1. ADDED LOGIC: Find the task with the nearest deadline
+            let upcomingTask = null;
+            if (project.tasks && project.tasks.length > 0) {
+              // Filter out tasks that don't have a date
+              const tasksWithDates = project.tasks.filter(
+                (t: any) => t.dueDate,
+              );
 
-                {/* Updated the bottom section to include the delete button */}
-                <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
-                  <Link
-                    href={`/projects/${project.id}`}
-                    className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-500"
-                  >
-                    View Tasks <ArrowRight className="ml-1 w-4 h-4" />
-                  </Link>
+              if (tasksWithDates.length > 0) {
+                // Sort the tasks so the closest date comes first (index 0)
+                upcomingTask = tasksWithDates.sort(
+                  (a: any, b: any) =>
+                    new Date(a.dueDate).getTime() -
+                    new Date(b.dueDate).getTime(),
+                )[0];
+              }
+            }
 
-                  <button
-                    onClick={() => handleDelete(project.id, project.name)}
-                    disabled={deleteMutation.isPending}
-                    className="p-2 text-red-500 hover:bg-red-50 hover:text-red-700 rounded-md transition-colors"
-                    title="Delete Project"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
+            return (
+              <div
+                key={project.id}
+                className="bg-white overflow-hidden shadow-sm rounded-3xl border hover:shadow-xl transition-shadow "
+              >
+                <div className="p-5">
+                  <div className="flex justify-between items-start">
+                    <h3 className="text-lg font-semibold text-gray-900 truncate pr-2">
+                      {project.name}
+                    </h3>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-green-600">
+                      Active
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm text-gray-500 line-clamp-2">
+                    {project.description || "No description provided."}
+                  </p>
+
+                  {/* 2. ADDED UI: Show the nearest task and its date/time */}
+                  {upcomingTask && (
+                    <div className="mt-4 flex flex-col bg-orange-50 border border-orange-100 p-3 rounded-xl">
+                      <span className="text-xs font-bold text-orange-800 mb-1 truncate">
+                        Urgent Task: {upcomingTask.title}
+                      </span>
+                      <div className="flex items-center text-xs font-medium text-orange-600">
+                        <Clock className="w-3.5 h-3.5 mr-1" />
+                        {new Date(upcomingTask.dueDate).toLocaleString(
+                          "en-US",
+                          {
+                            month: "short",
+                            day: "numeric",
+                            hour: "numeric",
+                            minute: "2-digit",
+                          },
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Updated the bottom section to include the delete button */}
+                  <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
+                    <Link
+                      href={`/projects/${project.id}`}
+                      className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-500"
+                    >
+                      View Tasks <ArrowRight className="ml-1 w-4 h-4" />
+                    </Link>
+
+                    <button
+                      onClick={() => handleDelete(project.id, project.name)}
+                      disabled={deleteMutation.isPending}
+                      className="p-2 text-red-500 hover:bg-red-50 hover:text-red-700 rounded-md transition-colors"
+                      title="Delete Project"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

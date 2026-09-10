@@ -7,7 +7,14 @@ import { api } from "@/lib/axios";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { ArrowLeft, Plus, Search, Trash2, Pencil } from "lucide-react";
+import {
+  ArrowLeft,
+  Plus,
+  Search,
+  Trash2,
+  Pencil,
+  Calendar,
+} from "lucide-react";
 import Link from "next/link";
 
 const taskSchema = z.object({
@@ -149,6 +156,29 @@ export default function ProjectDetailsPage() {
       updateTaskMutation.mutate({ id: editingTaskId, data });
     } else {
       createTaskMutation.mutate(data);
+    }
+  };
+
+  // Helper function to calculate remaining days
+  const getDaysRemainingText = (dueDateString: string) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to midnight to avoid time-of-day issues
+
+    const dueDate = new Date(dueDateString);
+    dueDate.setHours(0, 0, 0, 0); // Set to midnight
+
+    // Calculate the difference in milliseconds, then convert to days
+    const diffTime = dueDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) {
+      return `Overdue by ${Math.abs(diffDays)} day(s)`;
+    } else if (diffDays === 0) {
+      return "Due today";
+    } else if (diffDays === 1) {
+      return "1 day remaining";
+    } else {
+      return `${diffDays} days remaining`;
     }
   };
 
@@ -391,6 +421,31 @@ export default function ProjectDetailsPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                {/* 1. ADDED: Due Date Display feature */}
+                {task.dueDate && (
+                  <div className="flex items-center text-sm text-gray-600 bg-gray-50 border px-3 py-1.5 rounded-lg mr-2 shadow-sm">
+                    <Calendar className="w-4 h-4 mr-2 text-gray-500" />
+                    {new Date(task.dueDate).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </div>
+                )}
+                {/* UPDATED: Due Date Display feature with Days Remaining */}
+                {task.dueDate && (
+                  <div
+                    className={`flex items-center text-sm px-3 py-1.5 rounded-lg mr-2 shadow-sm border ${
+                      new Date(task.dueDate) < new Date()
+                        ? "bg-red-50 text-red-600 border-red-200"
+                        : "bg-gray-50 text-gray-700 border-gray-200"
+                    }`}
+                  >
+                    <Calendar className="w-4 h-4 mr-2" />
+                    {getDaysRemainingText(task.dueDate)}
+                  </div>
+                )}
+
                 {/* New Edit button added here. */}
                 <button
                   onClick={() => handleEditClick(task)}
