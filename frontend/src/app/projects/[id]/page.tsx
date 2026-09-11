@@ -20,8 +20,8 @@ import Link from "next/link";
 const taskSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
-  status: z.enum(["TODO", "IN_PROGRESS", "COMPLETED"]).default("TODO"),
-  priority: z.enum(["LOW", "MEDIUM", "HIGH"]).default("MEDIUM"),
+  status: z.enum(["TODO", "IN_PROGRESS", "COMPLETED"]),
+  priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
   dueDate: z.string().optional(),
   assignedTo: z.string().optional(),
 });
